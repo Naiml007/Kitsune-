@@ -2,36 +2,38 @@
 import React, { useEffect, useState } from "react";
 import ArtPlayer from "./ArtPlayer";
 import Hls from "hls.js";
-import { Episode, IAnime } from "@/@types/EnimeType";
 import useAnime from "@/hooks/useAnime";
-import { TEpisodeInfo, TEpisodeSources } from "@/@types/AnimeType";
+import {
+  IAnimeInfo,
+  IEpisodes,
+  TEpisodeInfo,
+  TEpisodeSources,
+} from "@/@types/AnimeType";
 import loading from "../assets/genkai.gif";
 
 type KitsunePlayerProps = {
-  episodeInfo: Episode;
-  animeInfo: IAnime;
+  episodeInfo: IEpisodes;
+  animeInfo: IAnimeInfo;
 };
 
 function KitsunePlayer({ episodeInfo, animeInfo }: KitsunePlayerProps) {
   const [epSource, setEpSource] = useState<TEpisodeInfo | null>(null);
   const [uri, setUri] = useState<string>("");
-  const { getEpisodeGogo, getEpisodeZoro } = useAnime();
+  const { getEpisodeGogo } = useAnime();
 
   const fetchSource = async () => {
     if (!episodeInfo) return;
-    let source;
-    let data;
-
-    if (typeof window !== "undefined") {
-      if (localStorage?.getItem("provider") === "Gogo") {
-        source = episodeInfo.sources[0].target;
-        data = await getEpisodeGogo(source);
-      }
-      if (localStorage?.getItem("provider") === "Zoro") {
-        source = episodeInfo.sources[1].target;
-        data = await getEpisodeZoro(source);
-      }
-    }
+    let source = episodeInfo.id;
+    let data = await getEpisodeGogo(source);
+    //
+    // if (typeof window !== "undefined") {
+    //   if (localStorage?.getItem("provider") === "Gogo") {
+    //           }
+    //   if (localStorage?.getItem("provider") === "Zoro") {
+    //     source = episodeInfo.sources[1].target;
+    //     data = await getEpisodeZoro(source);
+    //   }
+    // }
 
     setEpSource(data);
     data.sources &&
@@ -46,7 +48,7 @@ function KitsunePlayer({ episodeInfo, animeInfo }: KitsunePlayerProps) {
     container: ".artplayer-app",
     url: uri,
     customType: {
-      m3u8: function(video: any, url: string) {
+      m3u8: function (video: any, url: string) {
         let hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
@@ -56,11 +58,11 @@ function KitsunePlayer({ episodeInfo, animeInfo }: KitsunePlayerProps) {
       },
     },
     title: animeInfo.title,
-    poster: episodeInfo?.image ?? "",
+    poster: animeInfo.image,
     volume: 1,
     isLive: false,
     muted: false,
-    autoplay: false,
+    autoplay: true,
     autoOrientation: true,
     pip: true,
     autoSize: false,
@@ -88,13 +90,13 @@ function KitsunePlayer({ episodeInfo, animeInfo }: KitsunePlayerProps) {
     quality:
       epSource && epSource.sources
         ? epSource.sources.map((source: TEpisodeSources) => ({
-          default: source.quality === "720p",
-          html: source.quality,
-          url: "https://cors.zimjs.com/" + source.url,
-        }))
+            default: source.quality === "720p",
+            html: source.quality,
+            url: "https://cors.zimjs.com/" + source.url,
+          }))
         : [],
     thumbnails: {
-      url: animeInfo.coverImage,
+      url: animeInfo.image,
       number: 60,
       column: 10,
     },
@@ -126,7 +128,7 @@ function KitsunePlayer({ episodeInfo, animeInfo }: KitsunePlayerProps) {
     <div
       className={`rounded-lg p-5 md:h-[800px] h-[250px] w-full`}
       style={{
-        backgroundImage: `url(${animeInfo.bannerImage})`,
+        backgroundImage: `url(${animeInfo.image})`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         filter: "blur(20px)",

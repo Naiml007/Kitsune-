@@ -1,13 +1,13 @@
 import kv from "@vercel/kv";
-import { ANIME_URI, BASE_URI } from "@/utils/constants";
+import { BASE_URI } from "@/utils/constants";
 
 export default function useAnime() {
   let API = {
-    recent: ANIME_URI + "/recent",
-    popular: ANIME_URI + "/popular",
-    info: ANIME_URI + "/anime",
+    recent: BASE_URI + "/anime/recent",
+    popular: BASE_URI + "/anime/popular",
+    info: BASE_URI + "/anime/info",
     episode: BASE_URI + "/anime/zoro",
-    search: ANIME_URI + "/search",
+    search: BASE_URI + "/anime/search",
   };
 
   async function getRecent() {
@@ -39,7 +39,7 @@ export default function useAnime() {
       }
     }
     const data = await fetch(
-      location.protocol + "//" + location.host + "/api/anime/zoro" + id
+      location.protocol + "//" + location.host + "/api/anime/zoro" + id,
     );
     let json = await data.json();
 
@@ -58,7 +58,7 @@ export default function useAnime() {
       }
     }
     const data = await fetch(
-      location.protocol + "//" + location.host + "/api/anime/gogo/watch" + id
+      location.protocol + "//" + location.host + "/api/anime/gogo/watch/" + id,
     );
     let json = await data.json();
 
@@ -69,7 +69,9 @@ export default function useAnime() {
   }
 
   async function getSearch(query: string) {
-    const data = await fetch(API.search + "/" + query);
+    const data = await fetch(
+      location.protocol + "//" + location.host + "/api/anime/search/" + query,
+    );
     return data.json();
   }
 

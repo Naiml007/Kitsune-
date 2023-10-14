@@ -3,30 +3,30 @@ import React from "react";
 import KitsunePlayer from "@/components/KitsunePlayer";
 import { FaBackward, FaForward } from "react-icons/fa";
 import EpisodeLayout from "./EpisodeLayout";
-import { Episode, IAnime } from "@/@types/EnimeType";
 import dmcaJSON from "@/assets/dmca.json";
+import { IAnimeInfo, IEpisodes } from "@/@types/AnimeType";
 
 type Props = {
-  episode: Episode;
-  animeInfo: IAnime;
+  episode: IEpisodes;
+  animeInfo: IAnimeInfo;
 };
 
 function EpisodeFrame({ episode, animeInfo }: Props) {
   const onNext = () => {
     if (animeInfo.episodes.at(-1)?.number === episode.number) return;
-    window.location.href = `/anime/${animeInfo.slug}/watch?ep=${animeInfo.episodes[episode.number - 1 + 1]?.id
-      }`;
+    window.location.href = `/anime/${animeInfo.id}/watch?ep=${animeInfo
+      .episodes[episode.number - 1 + 1]?.id}`;
   };
 
   const onPrev = () => {
     if (episode.number === 1) return;
-    window.location.href = `/anime/${animeInfo.slug}/watch?ep=${animeInfo.episodes[episode.number - 1 - 1]?.id
-      }`;
+    window.location.href = `/anime/${animeInfo.id}/watch?ep=${animeInfo
+      .episodes[episode.number - 1 - 1]?.id}`;
   };
 
   return (
     <>
-      {dmcaJSON.animes.includes(animeInfo.slug) ? (
+      {dmcaJSON.animes.includes(animeInfo.id) ? (
         <div className="md:h-[800px] h-[250px] w-full bg-black text-white flex items-center justify-center">
           This content has been removed due to a DMCA takedown notice.
         </div>

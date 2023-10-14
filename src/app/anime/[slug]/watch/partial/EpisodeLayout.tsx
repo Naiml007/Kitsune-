@@ -1,13 +1,12 @@
 "use client";
 import React, { createRef, useRef, useEffect, useState } from "react";
-import { TWatchedAnime } from "@/@types/AnimeType";
+import { IAnimeInfo, IEpisodes, TWatchedAnime } from "@/@types/AnimeType";
 import EpisodeDisplay from "../components/EpisodeDisplay";
 import useLocalStorage from "@/hooks/useLocalStorage";
-import { Episode, IAnime } from "@/@types/EnimeType";
 
 type EpisodeLayoutProps = {
-  animeInfo: IAnime;
-  episode: Episode;
+  animeInfo: IAnimeInfo;
+  episode: IEpisodes;
 };
 
 function EpisodeLayout({ animeInfo, episode }: EpisodeLayoutProps) {
@@ -21,17 +20,24 @@ function EpisodeLayout({ animeInfo, episode }: EpisodeLayoutProps) {
 
   useEffect(() => {
     if (animeInfo.episodes.length <= 0) return;
-    setWatched(getKitsuneWatchedId(animeInfo.slug));
+    setWatched(getKitsuneWatchedId(animeInfo.id));
     setKitsuneWatched({
-      id: animeInfo.slug,
-      title: animeInfo.title.romaji,
-      image: animeInfo.coverImage,
+      id: animeInfo.id,
+      title: animeInfo.title,
+      image: animeInfo.image,
       ep: {
         id: episode.id,
         number: episode.number,
       },
     });
   }, []);
+
+  // useEffect(() => {
+  //   const provider = localStorage.getItem("provider");
+  //   if (!provider) {
+  //     localStorage.setItem("provider", "Gogo");
+  //   }
+  // }, []);
 
   const onSearch = (e: any) => {
     e.preventDefault();
@@ -41,6 +47,10 @@ function EpisodeLayout({ animeInfo, episode }: EpisodeLayoutProps) {
     curRef.current = refs[ep].current;
     if (curRef.current) {
       curRef.current.scrollIntoView();
+      curRef.current.classList.add("animate-bounce");
+      setTimeout(() => {
+        curRef.current?.classList.remove("animate-bounce");
+      }, 5000);
     }
   };
 
@@ -56,45 +66,34 @@ function EpisodeLayout({ animeInfo, episode }: EpisodeLayoutProps) {
             onChange={onSearch}
           />
         </div>
-        <div className="flex items-center justify-end gap-2 w-full lg:w-1/2 order-1 lg:order-2 mb-5 lg:mb-0">
-          <p className="text-sm text-gray-400">Provider</p>
-          <select
-            className="select select-bordered w-full lg:w-[400px] max-w-xs select-sm"
-            onChange={(e) => {
-              localStorage.setItem("provider", e.target.value);
-              window.location.reload();
-            }}
-            value={
-              typeof window !== "undefined"
-                ? localStorage.getItem("provider") ?? "Gogo"
-                : ""
-            }
-          >
-            <option value="Gogo">Gogo</option>
-            <option value="Zoro">Zoro</option>
-          </select>
-        </div>
+        {/* <div className="flex items-center justify-end gap-2 w-full lg:w-1/2 order-1 lg:order-2 mb-5 lg:mb-0"> */}
+        {/*   <p className="text-sm text-gray-400">Provider</p> */}
+        {/*   <select */}
+        {/*     className="select select-bordered w-full lg:w-[400px] max-w-xs select-sm" */}
+        {/*     onChange={(e) => { */}
+        {/*       localStorage.setItem("provider", e.target.value); */}
+        {/*       window.location.reload(); */}
+        {/*     }} */}
+        {/*     value={ */}
+        {/*       typeof window !== "undefined" */}
+        {/*         ? localStorage.getItem("provider") ?? "Gogo" */}
+        {/*         : "" */}
+        {/*     } */}
+        {/*   > */}
+        {/*     <option value="Gogo">Gogo</option> */}
+        {/*     <option value="Zoro">Zoro</option> */}
+        {/*   </select> */}
+        {/* </div> */}
       </div>
       <div className="flex flex-wrap gap-5 max-h-[90vh] overflow-y-auto">
         {animeInfo.episodes.length > 0 ? (
-          animeInfo.episodes.map((ep: Episode, index: number) => (
-            <div
-              key={index}
-              className={"w-full lg:w-[320px]"}
-              ref={refs[ep.number]}
-            >
-              <a href={`/anime/${animeInfo.slug}/watch?ep=${ep.id}`}>
+          animeInfo.episodes.map((ep: IEpisodes, index: number) => (
+            <div key={index} ref={refs[ep.number]}>
+              <a href={`/anime/${animeInfo.id}/watch?ep=${ep.id}`}>
                 <EpisodeDisplay
                   ep={ep}
-                  backSrc={animeInfo.coverImage}
+                  backSrc={animeInfo.image}
                   isCurrent={episode.id === ep.id}
-                  watched={
-                    watched
-                      ? watched.ep.some(
-                        (e: { id: string; number: number }) => e.id === ep.id
-                      )
-                      : false
-                  }
                 />
               </a>
             </div>

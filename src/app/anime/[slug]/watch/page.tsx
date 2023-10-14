@@ -1,10 +1,11 @@
 import useAnime from "@/hooks/useAnime";
 import React from "react";
-import { Episode, IAnime, ITmdbImage } from "@/@types/EnimeType";
 import useTMDB from "@/hooks/useTMDB";
 import { Metadata } from "next";
 import parse from "html-react-parser";
 import EpisodeFrame from "./partial/EpisodeFrame";
+import KitsuneCover from "@/assets/cover.png";
+import { ITmdbImage, IAnimeInfo, IEpisodes } from "@/@types/AnimeType";
 
 type Props = {
   params: { slug: string };
@@ -14,13 +15,13 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = params.slug;
   const { getInfo } = useAnime();
-  const info: IAnime = await getInfo(id);
+  const info: IAnimeInfo = await getInfo(id);
 
   return {
-    title: "Kitsune | " + info.title.romaji,
+    title: "Kitsune | " + info.title,
     openGraph: {
-      title: "Watch " + info.title.romaji + " free with no Ads on Kitsune",
-      images: [info.coverImage, info.bannerImage],
+      title: "Watch " + info.title + " free with no Ads on Kitsune",
+      images: [info.image],
     },
   };
 }
@@ -28,16 +29,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 async function page({ params, searchParams }: Props) {
   const { getInfo } = useAnime();
   const { getTMDBMap } = useTMDB();
-  let animeInfo: IAnime = await getInfo(params.slug);
-  const tmdbLogo: { result: ITmdbImage } = await getTMDBMap(
-    animeInfo.title.romaji
-  );
+  let animeInfo: IAnimeInfo = await getInfo(params.slug);
+  const tmdbLogo: { result: ITmdbImage } = await getTMDBMap(animeInfo.title);
 
   let episode = searchParams.ep
-    ? animeInfo.episodes?.filter((ep: Episode) => ep.id === searchParams.ep)[0]
+    ? animeInfo.episodes?.filter(
+      (ep: IEpisodes) => ep.id === searchParams.ep,
+    )[0]
     : animeInfo.episodes[0];
 
   const random = (arr: any[]) => {
+    if (typeof arr === "undefined") return;
     return arr[Math.floor(Math.random() * arr.length)];
   };
 
@@ -46,9 +48,10 @@ async function page({ params, searchParams }: Props) {
       <div className="relative w-full">
         <img
           src={
-            animeInfo.bannerImage ??
-            "https://image.tmdb.org/t/p/original" +
-            random(tmdbLogo.result.backdrops).file_path
+            tmdbLogo.result.backdrops?.length > 0
+              ? "https://image.tmdb.org/t/p/original" +
+              random(tmdbLogo.result.backdrops)?.file_path
+              : KitsuneCover.src
           }
           className="lg:h-[500px] h-[200px] w-full opacity-50 object-cover"
         />
@@ -57,7 +60,7 @@ async function page({ params, searchParams }: Props) {
             <img
               src={
                 "https://image.tmdb.org/t/p/w500" +
-                random(tmdbLogo.result.logos).file_path
+                random(tmdbLogo.result.logos)?.file_path
               }
               className="lg:h-[250px] lg:w-[500px] w-[250px] h-[150px]"
             />
@@ -76,7 +79,7 @@ async function page({ params, searchParams }: Props) {
           <div
             className={`p-5 h-[90vh] lg:h-full w-full`}
             style={{
-              backgroundImage: `url(${animeInfo.coverImage})`,
+              backgroundImage: `url(${animeInfo.image})`,
               backgroundRepeat: "no-repeat",
               backgroundSize: "cover",
               filter: "blur(20px)",
@@ -89,16 +92,16 @@ async function page({ params, searchParams }: Props) {
           <div className="absolute top-0 m-5 flex flex-col gap-5">
             <div className="flex lg:flex-row flex-col gap-3">
               <img
-                src={animeInfo.coverImage}
+                src={animeInfo.image}
                 className="rounded-lg object-cover w-[150px] max-h-[200px]"
               />
             </div>
             <div>
-              <p className="font-bold text-xl">{animeInfo.title.romaji}</p>
-              <p>{animeInfo.synonyms}</p>
+              <p className="font-bold text-xl">{animeInfo.title}</p>
+              <p>{animeInfo.otherName}</p>
               <div>
                 Genre:
-                {animeInfo.genre.map((genre: string, index: number) => (
+                {animeInfo.genres.map((genre: string, index: number) => (
                   <div
                     className="badge badge-primary mr-1 ml-1 text-primary-content"
                     key={index}
@@ -108,8 +111,8 @@ async function page({ params, searchParams }: Props) {
                 ))}
               </div>
               <p>Status: {animeInfo.status}</p>
-              <p>Released: {animeInfo.year}</p>
-              <p>Episodes: {animeInfo.season}</p>
+              <p>Released: {animeInfo.releaseDate}</p>
+              <p>Episodes: {animeInfo.totalEpisodes}</p>
             </div>
             <div>
               <div className="max-h-[35vh] lg:max-h-full overflow-y-auto">
